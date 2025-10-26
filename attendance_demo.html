@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cyberpunk Attendance Portal</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Electrolize&family=Orbitron:wght@500&family=Rajdhani:wght@600&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      transition: all 0.3s ease;
+      scrollbar-width: thin;
+      scrollbar-color: #0ff9ff11 transparent;
+    }
+
+    /* Scrollbar for Chrome/Safari */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background-color: #00fff7aa;
+      border-radius: 10px;
+      border: 2px solid transparent;
+    }
+
+    body, html {
+      min-height: 100vh;
+      margin: 0;
+      overflow: hidden;
+      font-family: 'Rajdhani', sans-serif;
+      color: #00f0ff;
+      user-select: none;
+      background: #000;
+      position: relative;
+    }
+
+    /* Canvas full screen background */
+    #bgCanvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      background: radial-gradient(circle at center, #000000 0%, #081926 80%);
+      pointer-events: none;
+    }
+
+    #container {
+      position: relative;
+      z-index: 10;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px 0 40px 0;
+      max-width: 100vw;
+      overflow-x: hidden;
+    }
+
+    header {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 3.2rem;
+      color: #03fcf8;
+      text-shadow:
+        0 0 8px #00fff7ff,
+        0 0 20px #00fff7bb,
+        0 0 40px #00f9ff88,
+        0 0 80px #00d2fa44;
+      letter-spacing: 14px;
+      margin-bottom: 20px;
+      animation: neonPulse 2s ease-in-out infinite alternate;
+      text-transform: uppercase;
+      user-select: none;
+      z-index: 100;
+    }
+
+    @keyframes neonPulse {
+      from {
+        text-shadow:
+          0 0 8px #00fff7ff,
+          0 0 20px #00fff7bb,
+          0 0 40px #00f9ff88,
+          0 0 80px #00d2fa44;
+        color: #00fff7cc;
+      }
+      to {
+        text-shadow:
+          0 0 15px #00f6ffdd,
+          0 0 35px #00f6ffcc,
+          0 0 60px #00d3ffbb,
+          0 0 100px #00d3ff99;
+        color: #14ffff;
+      }
+    }
+
+    nav {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+      z-index: 100;
+      position: relative;
+    }
+    nav button {
+      font-family: 'Electrolize', sans-serif;
+      font-size: 1.25rem;
+      background: transparent;
+      border: 2.5px solid #00f9ff;
+      color: #00f9ff;
+      padding: 14px 42px;
+      border-radius: 40px;
+      cursor: pointer;
+      letter-spacing: 2px;
+      font-weight: 700;
+      box-shadow:
+        0 0 5px #00f9ff,
+        0 0 15px #00f9ff99;
+      user-select: none;
+      position: relative;
+      overflow: hidden;
+      outline: none;
+      transition: all 0.45s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+
+    nav button::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent, #14fffaff, transparent);
+      transform: translateX(-100%);
+      transition: transform 0.7s ease;
+      pointer-events: none;
+      border-radius: 40px;
+      z-index: 0;
+    }
+
+    nav button:hover::before {
+      transform: translateX(100%);
+      transition-timing-function: cubic-bezier(0.77, 0, 0.175, 1);
+    }
+
+    nav button.active {
+      background: #00f7ff18;
+      box-shadow:
+        0 0 25px #00f9ffcc,
+        0 0 50px #00f9ffcc;
+      color: #00f9ff;
+      border-color: #00f9ff;
+      cursor: default;
+    }
+
+    main {
+      width: 94vw;
+      max-width: 960px;
+      background: rgba(10, 20, 27, 0.85);
+      border-radius: 18px;
+      padding: 28px 32px;
+      box-shadow:
+        inset 0 0 25px #00ffffaa,
+        0 0 45px #00f9ffcc;
+      overflow-y: auto;
+      max-height: 600px;
+      user-select: text;
+      position: relative;
+      z-index: 100;
+    }
+
+    h2 {
+      font-weight: 700;
+      font-size: 2.2rem;
+      margin-bottom: 28px;
+      letter-spacing: 1.5px;
+      color: #00fbff;
+      text-shadow: 0 0 5px #00f9ffbb;
+    }
+
+    p {
+      font-weight: 400;
+      font-size: 1.13rem;
+      letter-spacing: 0.5px;
+      margin-bottom: 18px;
+      color: #b0eaffcc;
+    }
+
+    /* Tables */
+
+    table {
+      width: 100%;
+      border-spacing: 0 14px;
+      border-collapse: separate;
+      overflow: hidden;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 600;
+      color: #00f9ff;
+      text-shadow: 0 0 6px #03e7faaa;
+    }
+
+    th {
+      text-align: left;
+      padding: 10px 20px;
+      font-size: 1.15rem;
+      background: #021722;
+      border-bottom: 3px solid #00f9ffaa;
+      letter-spacing: 1.1px;
+      text-transform: uppercase;
+    }
+
+    td {
+      padding: 14px 20px;
+      background: linear-gradient(135deg, rgba(0,255,255,.2), rgba(0, 255, 255, .05));
+      border-radius: 24px;
+      box-shadow:
+        0 0 10px #00f7ff55,
+        inset 0 0 3px #00d8ff88;
+      text-shadow: 0 0 6px #00eaffdd;
+      letter-spacing: 0.6px;
+      position: relative;
+      transition: all 0.3s ease;
+    }
+
+    tbody tr:hover td {
+      background: linear-gradient(135deg, #00ffff99, #00e6ff44);
+      box-shadow:
+        0 0 18px #00f7ff77,
+        inset 0 0 18px #00eaffaa;
+      color: #001f2b;
+      text-shadow: none;
+      cursor: pointer;
+    }
+
+    td.action button {
+      background: #00f9ffcc;
+      border: none;
+      border-radius: 24px;
+      padding: 9px 22px;
+      font-weight: 700;
+      color: #023741;
+      cursor: pointer;
+      text-shadow: none;
+      box-shadow:
+        0 0 12px #00f9ff99;
+      font-size: 1rem;
+      letter-spacing: 1.2px;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    td.action button:hover {
+      background: #00d1ffdd;
+      color: #011417;
+      box-shadow: 0 0 25px #00d1ffe0;
+    }
+
+    section.report {
+      margin-top: 36px;
+      padding-top: 24px;
+      border-top: 2px solid #00ffff99;
+    }
+
+    section.report p {
+      font-weight: 600;
+      font-size: 1.1rem;
+      letter-spacing: 1.1px;
+      margin-bottom: 10px;
+      color: #00f5ffcc;
+      text-shadow: 0 0 8px #00aaffcc;
+    }
+
+    @media (max-width: 700px) {
+      main {
+        max-height: 100vh;
+        border-radius: 0;
+        box-shadow: none;
+        padding: 15px 17px;
+      }
+      table {
+        font-size: 13px;
+      }
+      td.action button {
+        padding: 7px 14px;
+        font-size: 0.9rem;
+        letter-spacing: 0.8px;
+      }
+      h2 {
+        font-size: 1.8rem;
+      }
+      nav button {
+        font-size: 1rem;
+        padding: 10px 28px;
+      }
+      header {
+        font-size: 2.1rem;
+        letter-spacing: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="bgCanvas"></canvas>
+  <div id="container">
+    <header>SMART ATTENDANCE</header>
+    <nav>
+      <button id="adminBtn" class="active" onclick="showAdmin()">Administrator</button>
+      <button id="studentBtn" onclick="showStudent()">Student</button>
+    </nav>
+    <main id="mainContent"></main>
+  </div>
+
+  <script>
+    // Particle Animation setup
+    const canvas = document.getElementById('bgCanvas');
+    const ctx = canvas.getContext('2d');
+    let width, height;
+
+    function resize() {
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = width;
+      canvas.height = height;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    class Particle {
+      constructor() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.speedX = (Math.random() - 0.5) * 0.8;
+        this.speedY = (Math.random() - 0.5) * 0.8;
+        this.radius = Math.random() * 2 + 1;
+        this.opacity = Math.random() * 0.6 + 0.2;
+      }
+      update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+
+        if (this.x < 0 || this.x > width) this.speedX *= -1;
+        if (this.y < 0 || this.y > height) this.speedY *= -1;
+      }
+      draw() {
+        ctx.beginPath();
+        const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius*2);
+        gradient.addColorStop(0, `rgba(0,255,255,${this.opacity})`);
+        gradient.addColorStop(1, 'rgba(0,255,255,0)');
+        ctx.fillStyle = gradient;
+        ctx.shadowColor = '#00ffff';
+        ctx.shadowBlur = 10;
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2);
+        ctx.fill();
+      }
+    }
+
+    let particles = [];
+    const numParticles = 80;
+
+    function initParticles() {
+      particles = [];
+      for(let i=0; i < numParticles; i++) {
+        particles.push(new Particle());
+      }
+    }
+    initParticles();
+
+    function animate() {
+      ctx.clearRect(0, 0, width, height);
+      for(let p of particles) {
+        p.update();
+        p.draw();
+      }
+      // Draw connecting lines
+      for(let i=0; i < particles.length; i++) {
+        for(let j=i+1; j < particles.length; j++) {
+          let dx = particles[i].x - particles[j].x;
+          let dy = particles[i].y - particles[j].y;
+          let dist = Math.sqrt(dx*dx + dy*dy);
+          if(dist < 150) {
+            ctx.strokeStyle = `rgba(0,255,255,${1 - dist/150})`;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.stroke();
+          }
+        }
+      }
+      requestAnimationFrame(animate);
+    }
+    animate();
+
+    // UI logic
+    function showAdmin() {
+      document.getElementById('adminBtn').classList.add('active');
+      document.getElementById('studentBtn').classList.remove('active');
+      document.getElementById('mainContent').innerHTML = `
+      <section>
+        <h2>Administrator Dashboard</h2>
+        <p>Manage all attendance records smoothly and efficiently:</p>
+        <table>
+          <thead><tr>
+            <th>Name</th><th>Date</th><th>Status</th><th>Action</th>
+          </tr></thead>
+          <tbody>
+            <tr><td>Amit Kumar</td><td>2025-10-08</td><td>Present</td><td class="action"><button onclick="alert('Edit coming soon')">Edit</button></td></tr>
+            <tr><td>Shreya Mehta</td><td>2025-10-08</td><td>Absent</td><td class="action"><button onclick="alert('Edit coming soon')">Edit</button></td></tr>
+            <tr><td>Rajesh Singh</td><td>2025-10-08</td><td>Present</td><td class="action"><button onclick="alert('Edit coming soon')">Edit</button></td></tr>
+          </tbody>
+        </table>
+        <section class="report">
+          <h3>Attendance Summary</h3>
+          <p>Total Students: 30</p>
+          <p>Present Today: 28</p>
+          <p>Absent Today: 2</p>
+          <p>Attendance Rate: 93.3%</p>
+        </section>
+      </section>
+      `;
+    }
+
+    function showStudent() {
+      document.getElementById('studentBtn').classList.add('active');
+      document.getElementById('adminBtn').classList.remove('active');
+      document.getElementById('mainContent').innerHTML = `
+      <section>
+        <h2>Student Dashboard</h2>
+        <p>Your attendance records are detailed below:</p>
+        <table>
+          <thead><tr>
+            <th>Date</th><th>Status</th>
+          </tr></thead>
+          <tbody>
+            <tr><td>2025-10-05</td><td>Present</td></tr>
+            <tr><td>2025-10-06</td><td>Absent</td></tr>
+            <tr><td>2025-10-07</td><td>Present</td></tr>
+            <tr><td>2025-10-08</td><td>Present</td></tr>
+          </tbody>
+        </table>
+        <section class="report">
+          <h3>Summary</h3>
+          <p>Total Classes: 30</p>
+          <p>Present: 27</p>
+          <p>Absent: 3</p>
+          <p>Attendance Percentage: 90%</p>
+        </section>
+      </section>
+      `;
+    }
+
+    // Initialize
+    showAdmin();
+
+  </script>
+</body>
+</html>
